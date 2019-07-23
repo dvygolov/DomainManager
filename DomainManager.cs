@@ -1,4 +1,6 @@
-﻿namespace DomainManager
+﻿using System;
+
+namespace DomainManager
 {
     public class DomainManager
     {
@@ -25,6 +27,9 @@
         {
             if (useCloudFlare)
             {
+                Console.Write("Введите ip адрес сервера:");
+                var ip = Console.ReadLine();
+                _cfm.AddDomains(domains, ip);
                 var nameServers = _cfm.GetNameServers(domains);
                 _fnm.ModifyNameServers(domains, nameServers);
             }
@@ -32,7 +37,7 @@
             {
                 //TODO:сделать тут создание SSL-сертификата
             }
-            _im.AddDomains(domains,siteName);
+            _im.AddDomains(domains, siteName);
         }
     }
 }

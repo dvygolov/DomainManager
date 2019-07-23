@@ -51,9 +51,8 @@ namespace DomainManager
         {
             foreach (var d in domains.Split(','))
             {
-                Console.WriteLine($"Добавляем в IIS домен {d}...");
-                _ps.ExecutePowerShell($"New-WebBinding -BindingInformation \"*:80:{d}\"");
-                _ps.ExecutePowerShell($"New-WebBinding -BindingInformation \"*:443:{d}\"");
+                Console.WriteLine($"Добавляем в IIS домен {d} для сайта {siteName}...");
+                _ps.ExecutePowerShell($"New-WebBinding -HostHeader {d} -IPAddress * -Name {siteName} -Port 80 -Protocol http -SslFlags 0");
                 Console.WriteLine($"Домен {d} добавлен!");
             }
         }

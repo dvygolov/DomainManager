@@ -39,7 +39,7 @@ namespace DomainManager
         public string GetNameServers(string domains)
         {
             var domainsHashSet=domains.Split(',').ToHashSet();
-            var extractNSRegex = @"^\s{2}(?<domain>\w+\.\w{2,3})\s+.{32}\s+(?<ns>.*?)\s{3}active\s+$";
+            var extractNSRegex = @"^\s{2}(?<domain>\w+\.\w{2,3})\s+.{32}\s+(?<ns>.*?)\s{3}(active|pending)\s+$";
             var command = $"php build/cloud.php show-domains";
             var res = _cmd.ExecuteCmd(command);
             var matches = Regex.Matches(res, extractNSRegex,RegexOptions.Multiline);

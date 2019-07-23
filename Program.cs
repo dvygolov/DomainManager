@@ -7,9 +7,6 @@ namespace DomainManager
     {
         static void Main(string[] args)
         {
-            /*var fn=new IISManager();
-            fn.GetWebsiteName();
-            return;*/
             IConfiguration config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", true, true)
                 .Build();
@@ -53,7 +50,7 @@ namespace DomainManager
                     if (!int.TryParse(opKey.KeyChar.ToString(), out _)) continue;
                     var opnum = int.Parse(opKey.KeyChar.ToString()) - 1;
                     if (opnum > operations.Length) continue;
-                    if (opnum == 1)
+                    if (opnum == 0)
                         siteName = im.GetWebsiteName();
                     operation = operations[opnum];
                     operationSelected = true;
