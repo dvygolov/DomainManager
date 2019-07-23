@@ -42,7 +42,7 @@ namespace DomainManager
             var extractNSRegex = @"^\s{2}(?<domain>\w+\.\w{2,3})\s+.{32}\s+(?<ns>.*?)\s{3}active\s+$";
             var command = $"php build/cloud.php show-domains";
             var res = _cmd.ExecuteCmd(command);
-            var matches = Regex.Matches(res, extractNSRegex);
+            var matches = Regex.Matches(res, extractNSRegex,RegexOptions.Multiline);
             foreach(Match m in matches)
             {
                 if (domainsHashSet.Contains(m.Groups["domain"].Value))
