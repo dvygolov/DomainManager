@@ -21,7 +21,7 @@ namespace DomainManager
                 return;
             }
 
-            var domainsFilePath = config.GetValue<string>("domains_filepath");
+            var domainsFilePath = config.GetValue<string>("cloudflare_domains_filepath");
             if (string.IsNullOrEmpty(domainsFilePath))
             {
                 Console.WriteLine("Не указан путь к файлу доменов для CloudFlare!");
