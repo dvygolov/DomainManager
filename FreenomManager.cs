@@ -53,7 +53,7 @@ namespace DomainManager
             }
             Console.Write("Ваш выбор:");
             var selectedIndexes = Console.ReadLine().Split(',').Select(ind => int.Parse(ind));
-            var selectedDomains = string.Join(",", selectedIndexes.Select(ind => domains[ind]["domainname"]));
+            var selectedDomains = string.Join(",", selectedIndexes.Select(ind => domains[ind-1]["domainname"]));
             return selectedDomains;
         }
 

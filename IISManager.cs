@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace DomainManager
 {
@@ -15,9 +16,14 @@ namespace DomainManager
         public string GetWebsiteName()
         {
             var command = "Get-Website | Select-Object -Property Name";
-            var sitesStr = _ps.ExecutePowerShell(command);
+            var output = _ps.ExecutePowerShell(command);
+            var sitesRegex=@"----[\s\r\n]+(?<sites>.*)[\r\n]{4}";
+            var m=Regex.Match(output,sitesRegex,RegexOptions.Singleline);
+            var sitesStr=m.Groups["sites"].Value;
+
             Console.WriteLine("Выберите сайт:");
-            var sites = sitesStr.Split().Skip(2).OrderBy(n => n).Select(n => n.Trim()).ToList();
+            var sites = sitesStr.Split(new char[] { '\r', '\n' },StringSplitOptions.RemoveEmptyEntries)
+                .OrderBy(n => n).Select(n => n.Trim()).ToList();
 
             int i = 1;
             foreach (var s in sites)

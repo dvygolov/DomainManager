@@ -7,6 +7,9 @@ namespace DomainManager
     {
         static void Main(string[] args)
         {
+            /*var fn=new IISManager();
+            fn.GetWebsiteName();
+            return;*/
             IConfiguration config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", true, true)
                 .Build();
@@ -46,6 +49,7 @@ namespace DomainManager
                     Console.WriteLine("2.Удалить забаненый домен");
                     Console.Write("Введите номер:");
                     var opKey = Console.ReadKey();
+                    Console.WriteLine();
                     if (!int.TryParse(opKey.KeyChar.ToString(), out _)) continue;
                     var opnum = int.Parse(opKey.KeyChar.ToString()) - 1;
                     if (opnum > operations.Length) continue;
