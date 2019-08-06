@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Net.Sockets;
 
 namespace DomainManager
 {
@@ -27,8 +29,13 @@ namespace DomainManager
         {
             if (useCloudFlare)
             {
-                Console.Write("Введите ip адрес сервера:");
+                string hostName = System.Net.Dns.GetHostName();
+                var defaultIp=System.Net.Dns.GetHostEntry(hostName).AddressList.
+                    First(a => a.AddressFamily == AddressFamily.InterNetwork).ToString();
+                Console.Write($"Введите ip адрес сервера (по умолчанию {defaultIp}):");
                 var ip = Console.ReadLine();
+                if (string.IsNullOrEmpty(ip))
+                    ip=defaultIp;
                 _cfm.AddDomains(domains, ip);
                 var nameServers = _cfm.GetNameServers(domains);
                 _fnm.ModifyNameServers(domains, nameServers);
