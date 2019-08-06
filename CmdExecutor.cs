@@ -15,7 +15,7 @@ namespace DomainManager
 
         public string ExecutePowerShell(string command)
         {
-            Process cmd = new Process();
+            var cmd = new Process();
             cmd.StartInfo.FileName = "powershell.exe";
             cmd.StartInfo.RedirectStandardInput = true;
             cmd.StartInfo.RedirectStandardOutput = true;
@@ -34,7 +34,7 @@ namespace DomainManager
 
         public string ExecuteCmd(string command)
         {
-            Process cmd = new Process();
+            var cmd = new Process();
             cmd.StartInfo.FileName = "cmd.exe";
             cmd.StartInfo.RedirectStandardInput = true;
             cmd.StartInfo.RedirectStandardOutput = true;
