@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System;
+using System.IO;
 
 namespace DomainManager
 {
@@ -27,77 +28,59 @@ namespace DomainManager
                 Console.WriteLine("Не указан путь к файлу доменов для CloudFlare!");
                 return;
             }
-
-            var fnm = new FreenomManager(fnApiPath, fnLogin, fnPassword);
-            var im = new IISManager();
-            var cfm = new CloudFlareManager(domainsFilePath);
-
-            var operations = new[] { "-a", "-c" };
-            string operation = string.Empty;
-            string domain = string.Empty;
-            string siteName = string.Empty;
-            if (args.Length == 0)
+            var iisSitesPath = config.GetValue<string>("iis_sites_path");
+            if (string.IsNullOrEmpty(iisSitesPath))
             {
-                bool operationSelected = false;
-                while (!operationSelected)
-                {
-                    Console.WriteLine("Меню работы с доменами. Выберите операцию:");
-                    Console.WriteLine("1.Добавить домен к сайту");
-                    Console.WriteLine("2.Удалить забаненый домен");
-                    Console.Write("Введите номер:");
-                    var opKey = Console.ReadKey();
-                    Console.WriteLine();
-                    if (!int.TryParse(opKey.KeyChar.ToString(), out _)) continue;
-                    var opnum = int.Parse(opKey.KeyChar.ToString()) - 1;
-                    if (opnum > operations.Length) continue;
-                    if (opnum == 0)
-                        siteName = im.GetWebsiteName();
-                    operation = operations[opnum];
-                    operationSelected = true;
-                }
-                domain = fnm.SelectDomains();
-            }
-            else if (args.Length == 2)
-            {
-                operation = args[0];
-                domain = args[1];
-            }
-            else if (args.Length == 3)
-            {
-                operation = args[0];
-                domain = args[1];
-                siteName = args[2];
-            }
-            else if (args.Length != 2 || args.Length != 3)
-            {
-                ShowHelp();
+                Console.WriteLine("Не указан путь к папке сайтов IIS!");
                 return;
             }
-
-            var arc = new DomainManager(fnm, cfm, im);
-            switch (operation)
+            if (!Directory.Exists(iisSitesPath))
             {
-                case "-c":
-                    arc.CancelDomain(domain);
+                Console.WriteLine($"Папка сайтов для IIS не существует по указанному пути {iisSitesPath}!");
+                return;
+            }
+            var iisArchivePath = config.GetValue<string>("iis_archive_path");
+
+            var fnm = new FreenomManager(fnApiPath, fnLogin, fnPassword);
+            var im = new IISManager(iisSitesPath,iisArchivePath);
+            var cfm = new CloudFlareManager(domainsFilePath);
+            var dm = new DomainManager(fnm, cfm, im);
+
+            bool operationSelected = false;
+            int opnum=0;
+            while (!operationSelected)
+            {
+                Console.WriteLine("-----Domains Manager by Yellow Web-----");
+                Console.WriteLine("Выберите операцию:");
+                Console.WriteLine("1.Создать новый сайт");
+                Console.WriteLine("2.Добавить домен к сайту");
+                Console.WriteLine("3.Удалить забаненый домен");
+                Console.WriteLine("4.Удалить сайт");
+                Console.WriteLine("---------------------------------------");
+                Console.Write("Введите номер:");
+                var opKey = Console.ReadKey();
+                Console.WriteLine();
+                if (!int.TryParse(opKey.KeyChar.ToString(), out _)) continue;
+                opnum = int.Parse(opKey.KeyChar.ToString());
+                if (opnum > 4 || opnum < 1) continue;
+                operationSelected = true;
+            }
+            switch (opnum)
+            {
+                case 1:
+                    dm.CreateNewSite();
                     break;
-                case "-a":
-                    arc.AddDomain(domain, siteName);
+                case 2:
+                    dm.AddDomain();
                     break;
-                default:
-                    ShowHelp();
+                case 3:
+                    dm.CancelDomain();
+                    break;
+                case 4:
+                    dm.DeleteSite();
                     break;
             }
-        }
 
-        static void ShowHelp()
-        {
-            Console.WriteLine("Программа для добавления/удаления к сайту IIS доменов by Даниил Выголов.");
-            Console.WriteLine("Варианты запуска:");
-            Console.WriteLine("Добавление домена");
-            Console.WriteLine("-a <DOMAIN_NAME> <IIS_SITENAME>");
-            Console.WriteLine("Удаление домена");
-            Console.WriteLine("-c <DOMAIN_NAME>");
-            Console.WriteLine("Примечание: можно указать несколько доменов через запятую БЕЗ ПРОБЕЛА.");
         }
     }
 }
