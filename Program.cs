@@ -6,7 +6,7 @@ namespace DomainManager
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
             IConfiguration config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", true, true)
@@ -22,12 +22,20 @@ namespace DomainManager
                 return;
             }
 
-            var domainsFilePath = config.GetValue<string>("cloudflare_domains_filepath");
-            if (string.IsNullOrEmpty(domainsFilePath))
+            bool useCloudFlare = config.GetValue<bool>("use_cloudflare");
+            string domainsFilePath = string.Empty;
+            if (useCloudFlare)
             {
-                Console.WriteLine("Не указан путь к файлу доменов для CloudFlare!");
-                return;
+                domainsFilePath = config.GetValue<string>("cloudflare_domains_filepath");
+                if (string.IsNullOrEmpty(domainsFilePath))
+                {
+                    Console.WriteLine("Не указан путь к файлу доменов для CloudFlare!");
+                    return;
+                }
             }
+
+
+
             var iisSitesPath = config.GetValue<string>("iis_sites_path");
             if (string.IsNullOrEmpty(iisSitesPath))
             {
@@ -42,12 +50,12 @@ namespace DomainManager
             var iisArchivePath = config.GetValue<string>("iis_archive_path");
 
             var fnm = new FreenomManager(fnApiPath, fnLogin, fnPassword);
-            var im = new IISManager(iisSitesPath,iisArchivePath);
-            var cfm = new CloudFlareManager(domainsFilePath);
+            var im = new IISManager(iisSitesPath, iisArchivePath);
+            var cfm = useCloudFlare ? new CloudFlareManager(domainsFilePath) : null;
             var dm = new DomainManager(fnm, cfm, im);
 
             bool operationSelected = false;
-            int opnum=0;
+            int opnum = 0;
             while (!operationSelected)
             {
                 Console.WriteLine("-----Domains Manager by Yellow Web-----");

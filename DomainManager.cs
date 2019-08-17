@@ -24,7 +24,8 @@ namespace DomainManager
             Console.Write("Введите путь к zip-архиву c файлами сайта:");
             var zipPackagePath = Console.ReadLine();
             _im.CreateNewSite(siteName, zipPackagePath);
-            AddDomain(siteName);
+            AddDomain(siteName, true);
+            _im.StartSite(siteName);
         }
 
         public void CancelDomain(string domains = "")
@@ -32,20 +33,25 @@ namespace DomainManager
             if (string.IsNullOrEmpty(domains))
                 domains = _fnm.SelectDomains();
             _im.CancelDomains(domains);
-            _cfm.CancelDomains(domains);
+            _cfm?.CancelDomains(domains);
             _fnm.CancelDomains(domains);
         }
 
-        public void AddDomain(string siteName = "")
+        public void AddDomain(string siteName = "", bool removeNewSiteBinding = false)
         {
             if (string.IsNullOrEmpty(siteName))
                 siteName = _im.GetWebsiteName();
             var domains = _fnm.SelectDomains();
-            var ip = GetServerIpAddress();
-            _cfm.AddDomains(domains, ip);
-            var nameServers = _cfm.GetNameServers(domains);
-            _fnm.ModifyNameServers(domains, nameServers);
+            if (_cfm != null)
+            {
+                var ip = GetServerIpAddress();
+                _cfm.AddDomains(domains, ip);
+                var nameServers = _cfm.GetNameServers(domains);
+                _fnm.ModifyNameServers(domains, nameServers);
+            }
             _im.AddDomains(domains, siteName);
+            if (removeNewSiteBinding)
+                _im.RemoveNewWebsiteBinding(siteName);
         }
 
         private static string GetServerIpAddress()
@@ -69,7 +75,7 @@ namespace DomainManager
             Console.Write("Удалить эти домены?(Y/N)");
             if (YesNoSelector.ReadAnswerEqualsYes())
             {
-                _im.CancelDomains(domains);
+                _fnm.CancelDomains(domains);
             }
         }
     }

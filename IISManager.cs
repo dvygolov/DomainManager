@@ -7,7 +7,7 @@ namespace DomainManager
 {
     public class IISManager
     {
-        private CmdExecutor _ps;
+        private readonly CmdExecutor _ps;
         private readonly string _sitesPath;
         private readonly string _archivePath;
 
@@ -41,13 +41,28 @@ namespace DomainManager
             return sites[indx - 1];
         }
 
+        internal void StartSite(string siteName)
+        {
+            Console.WriteLine($"Запускаем сайт {siteName}...");
+            var command = $"Start-Website -Name {siteName}";
+            var output = _ps.ExecutePowerShell(command);
+            Console.WriteLine("Сайт запущен.");
+        }
+
+        public void RemoveNewWebsiteBinding(string siteName)
+        {
+            var command = $"Remove-WebBinding -Name {siteName} -Port 80 -HostHeader NewSite";
+            var output = _ps.ExecutePowerShell(command);
+        }
+
+
         public string GetWebsiteDomains(string siteName)
         {
             var command = $"Get-WebBinding -Name {siteName}";
             var output = _ps.ExecutePowerShell(command);
-            var sitesRegex = @"----[\s\r\n]+(?<domains>.*)[\r\n]{4}";
-            var m = Regex.Match(output, sitesRegex, RegexOptions.Singleline);
-            var domains = m.Groups["domains"].Value;
+            var sitesRegex = @":\d+:(?<domain>[^\s]+)";
+            var matches = Regex.Matches(output, sitesRegex, RegexOptions.Singleline);
+            var domains=string.Join(',',matches.Select(m=>m.Groups["domain"].Value));
             return domains;
         }
 
@@ -56,7 +71,7 @@ namespace DomainManager
             Console.WriteLine($"Создаём в IIS сайт {siteName}...");
             var siteFolder = Path.Combine(_sitesPath, siteName);
             ZipHelper.ExtractZipFile(zipPackagePath, string.Empty, siteFolder);
-            _ps.ExecutePowerShell($"New-WebSite -Name {siteName} -Port 80 -HostHeader * -PhysicalPath {siteFolder}");
+            _ps.ExecutePowerShell($"New-WebSite -Name {siteName} -Port 80 -HostHeader NewSite -PhysicalPath {siteFolder}");
             Console.WriteLine($"Сайт создан!");
         }
 
@@ -66,7 +81,13 @@ namespace DomainManager
             _ps.ExecutePowerShell($"Remove-WebSite -Name {siteName}");
             if (!string.IsNullOrEmpty(_archivePath))
             {
-                Directory.Move(Path.Combine(_sitesPath, siteName), Path.Combine(_archivePath, siteName));
+                if (!Directory.Exists(_archivePath))
+                {
+                    Directory.CreateDirectory(_archivePath);
+                }
+
+                var archivedPath = Path.Combine(_archivePath, siteName);
+                Directory.Move(Path.Combine(_sitesPath, siteName), archivedPath);
                 Console.WriteLine($"Сайт {siteName} перенесён в архив!");
             }
             else
